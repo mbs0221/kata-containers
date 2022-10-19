@@ -20,6 +20,7 @@ const (
 	archCPUModelField         = genericCPUModelField
 	archGenuineIntel          = "GenuineIntel"
 	archAuthenticAMD          = "AuthenticAMD"
+	archAuthenticHYGON        = "HygonGenuine"
 	msgKernelVM               = "Kernel-based Virtual Machine"
 	msgKernelVirtio           = "Host kernel accelerator for virtio"
 	msgKernelVirtioNet        = "Host kernel accelerator for virtio network"
@@ -40,6 +41,7 @@ const (
 const (
 	cpuTypeIntel   = 0
 	cpuTypeAMD     = 1
+	cpuTypeHYGON   = 2
 	cpuTypeUnknown = -1
 )
 
@@ -179,6 +181,8 @@ func getCPUtype() int {
 		return cpuTypeIntel
 	} else if strings.Contains(str, archAuthenticAMD) {
 		return cpuTypeAMD
+	} else if strings.Contains(str, archAuthenticHYGON) {
+		return cpuTypeHYGON
 	} else {
 		return cpuTypeUnknown
 	}

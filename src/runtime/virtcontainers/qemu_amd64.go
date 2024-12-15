@@ -35,6 +35,8 @@ type qemuAmd64 struct {
 	qgsPort uint32
 
 	snpCertsPath string
+
+	vcpuModel string
 }
 
 const (
@@ -131,6 +133,7 @@ func newQemuArch(config HypervisorConfig) (qemuArch, error) {
 		snpGuest:     config.SevSnpGuest,
 		qgsPort:      config.QgsPort,
 		snpCertsPath: config.SnpCertsPath,
+		vcpuModel:    config.VCPUModel,
 	}
 
 	if config.ConfidentialGuest {
@@ -192,6 +195,10 @@ func (q *qemuAmd64) cpuModel() string {
 	if err == nil {
 		if protection == snpProtection && q.snpGuest {
 			cpuModel = "EPYC-v4"
+		}
+
+		if protection == csvProtection {
+			cpuModel = q.vcpuModel
 		}
 	}
 

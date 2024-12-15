@@ -115,6 +115,16 @@ default_vcpus = 1
 # NOTICE: on arm platform with gicv2 interrupt controller, set it to 8.
 default_maxvcpus = @DEFMAXVCPUS@
 
+# The Family/Model/Stepping of the CSV3 guest VM's vCPU.
+#   - host (default)
+#   - Dhyana
+#   - Dhyana-v1
+#   - Dhyana-v2
+#   - Dhyana-v3
+#   - Dharma
+#   - Dharma-v1
+vcpu_model = @DEFVCPUMODEL@
+
 # Bridges can be used to hot plug devices.
 # Limitations:
 # * Currently only pci bridges are supported

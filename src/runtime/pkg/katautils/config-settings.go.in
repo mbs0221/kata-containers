@@ -61,6 +61,7 @@ const defaultQgsPort = 4050
 
 const defaultVCPUCount uint32 = 1
 const defaultMaxVCPUCount uint32 = 0
+const defaultVCPUModel string = "host"
 const defaultMemSize uint32 = 2048 // MiB
 const defaultMemSlots uint32 = 10
 const defaultMemOffset uint64 = 0 // MiB

@@ -674,6 +674,9 @@ type HypervisorConfig struct {
 	// CsvPolicy defines policy for the Hygon CSV instance.
 	CSVGuestPolicy uint32
 
+	// VCPUModel defines the model of the vCPU, like Dhyana, Dharma
+	VCPUModel string
+
 	// Initdata defines the initdata passed into guest when CreateVM
 	Initdata string
 

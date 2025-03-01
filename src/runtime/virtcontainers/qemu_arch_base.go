@@ -173,6 +173,9 @@ type qemuArch interface {
 
 	// Query QMP to find the PCI slot of a device, given its QOM path or ID
 	qomGetSlot(qomPath string, qmpCh *qmpChannel) (types.PciSlot, error)
+
+	// append CSV VM definition.
+	appendCSVProtectionDevice(devices []govmmQemu.Device, firmware, firmwareVolume string, policy uint32) ([]govmmQemu.Device, string, error)
 }
 
 type qemuArchBase struct {
@@ -982,4 +985,10 @@ func (q *qemuArchBase) qomGetPciPath(qemuID string, qmpCh *qmpChannel) (types.Pc
 		parentPath = parentBus
 	}
 	return types.PciPathFromSlots(slots...)
+}
+
+// CSV methods
+func (q *qemuArchBase) appendCSVProtectionDevice(devices []govmmQemu.Device, firmware, firmwareVolume string, config uint32) ([]govmmQemu.Device, string, error) {
+	hvLogger.WithField("arch", runtime.GOARCH).Warnf("Confidential Computing has not been implemented for this architecture")
+	return devices, firmware, nil
 }

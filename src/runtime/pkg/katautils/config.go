@@ -134,6 +134,7 @@ type hypervisor struct {
 	DefaultBridges                 uint32                    `toml:"default_bridges"`
 	Msize9p                        uint32                    `toml:"msize_9p"`
 	RemoteHypervisorTimeout        uint32                    `toml:"remote_hypervisor_timeout"`
+	CSVGuestPolicy                 uint32                    `toml:"csv_guest_policy"`
 	NumVCPUs                       float32                   `toml:"default_vcpus"`
 	BlockDeviceCacheSet            bool                      `toml:"block_device_cache_set"`
 	BlockDeviceCacheDirect         bool                      `toml:"block_device_cache_direct"`
@@ -1006,6 +1007,7 @@ func newQemuHypervisorConfig(h hypervisor) (vc.HypervisorConfig, error) {
 		DisableSeLinux:           h.DisableSeLinux,
 		DisableGuestSeLinux:      h.DisableGuestSeLinux,
 		ExtraMonitorSocket:       extraMonitorSocket,
+		CSVGuestPolicy:           h.CSVGuestPolicy,
 	}, nil
 }
 
@@ -1481,6 +1483,7 @@ func GetDefaultHypervisorConfig() vc.HypervisorConfig {
 		DisableSeccomp:           defaultDisableSeccomp,
 		DisableGuestSeLinux:      defaultDisableGuestSeLinux,
 		LegacySerial:             defaultLegacySerial,
+		CSVGuestPolicy:           defaultCSVGuestPolicy,
 	}
 }
 

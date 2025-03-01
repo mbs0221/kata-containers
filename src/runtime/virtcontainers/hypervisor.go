@@ -671,6 +671,9 @@ type HypervisorConfig struct {
 	// QgsPort defines Intel Quote Generation Service port exposed from the host
 	QgsPort uint32
 
+	// CsvPolicy defines policy for the Hygon CSV instance.
+	CSVGuestPolicy uint32
+
 	// Initdata defines the initdata passed into guest when CreateVM
 	Initdata string
 

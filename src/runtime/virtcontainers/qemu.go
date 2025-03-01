@@ -681,9 +681,16 @@ func (q *qemu) CreateVM(ctx context.Context, id string, network Network, hypervi
 		Debug:          hypervisorConfig.Debug,
 	}
 
-	qemuConfig.Devices, qemuConfig.Bios, err = q.arch.appendProtectionDevice(qemuConfig.Devices, firmwarePath, firmwareVolumePath)
-	if err != nil {
-		return err
+	if q.arch.getProtection() == csvProtection {
+		qemuConfig.Devices, qemuConfig.Bios, err = q.arch.appendCSVProtectionDevice(qemuConfig.Devices, firmwarePath, firmwareVolumePath, q.config.CSVGuestPolicy)
+		if err != nil {
+			return err
+		}
+	} else {
+		qemuConfig.Devices, qemuConfig.Bios, err = q.arch.appendProtectionDevice(qemuConfig.Devices, firmwarePath, firmwareVolumePath)
+		if err != nil {
+			return err
+		}
 	}
 
 	if ioThread != nil {

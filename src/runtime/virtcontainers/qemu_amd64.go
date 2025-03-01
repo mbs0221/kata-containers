@@ -313,17 +313,6 @@ func (q *qemuAmd64) appendProtectionDevice(devices []govmmQemu.Device, firmware,
 				CBitPos:         cpuid.AMDMemEncrypt.CBitPosition,
 				ReducedPhysBits: 1,
 			}), "", nil
-	case csvProtection:
-		// CSV reuse sev-object in QEMU
-		return append(devices,
-			govmmQemu.Object{
-				Type:            govmmQemu.SEVGuest,
-				ID:              "sev",
-				Debug:           false,
-				File:            firmware,
-				CBitPos:         cpuid.AMDMemEncrypt.CBitPosition,
-				ReducedPhysBits: 1,
-			}), "", nil
 	case snpProtection:
 		return append(devices,
 			govmmQemu.Object{
@@ -341,5 +330,26 @@ func (q *qemuAmd64) appendProtectionDevice(devices []govmmQemu.Device, firmware,
 
 	default:
 		return devices, "", fmt.Errorf("Unsupported guest protection technology: %v", q.protection)
+	}
+}
+
+// append CSV VM definition.
+func (q *qemuAmd64) appendCSVProtectionDevice(devices []govmmQemu.Device, firmware, firmwareVolume string, policy uint32) ([]govmmQemu.Device, string, error) {
+	switch q.protection {
+	case csvProtection:
+		// CSV reuse sev-object in QEMU
+		return append(devices,
+			govmmQemu.Object{
+				Type:            govmmQemu.SEVGuest,
+				ID:              "sev",
+				Debug:           false,
+				File:            firmware,
+				CBitPos:         cpuid.AMDMemEncrypt.CBitPosition,
+				ReducedPhysBits: 1,
+				CsvPolicy:       policy,
+			}), "", nil
+
+	default:
+		return devices, "", fmt.Errorf("Unexpected guest protection technology: %v", q.protection)
 	}
 }

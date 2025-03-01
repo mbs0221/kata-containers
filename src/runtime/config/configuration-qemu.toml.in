@@ -40,6 +40,9 @@ rootfs_type=@DEFROOTFSTYPE@
 # Default false
 # confidential_guest = true
 
+# CSV guest policy
+# csv_guest_policy=0
+
 # Choose AMD SEV-SNP confidential guests
 # In case of using confidential guests on AMD hardware that supports both SEV
 # and SEV-SNP, the following enables SEV-SNP guests. SEV guests are default.

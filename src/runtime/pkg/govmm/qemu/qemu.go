@@ -321,6 +321,12 @@ type Object struct {
 
 	// QgsPort defines Intel Quote Generation Service port exposed from the host
 	QgsPort uint32
+
+	// CsvPolicy defines policy for the Hygon CSV instance.
+	// This is only relevant for sev-guest objects. Hygon reuse
+	// sev-guest objects solely to reduce the complexity of the
+	// software stack.
+	CsvPolicy uint32
 }
 
 // Valid returns true if the Object structure is valid and complete.
@@ -386,6 +392,7 @@ func (object Object) QemuParams(config *Config) []string {
 		objectParams = append(objectParams, fmt.Sprintf("reduced-phys-bits=%d", object.ReducedPhysBits))
 		if cpuid.VendorIdentificatorString == "HygonGenuine" {
 			objectParams = append(objectParams, "kernel-hashes=on")
+			objectParams = append(objectParams, fmt.Sprintf("policy=%d", object.CsvPolicy))
 		}
 
 		driveParams = append(driveParams, "if=pflash,format=raw,readonly=on")

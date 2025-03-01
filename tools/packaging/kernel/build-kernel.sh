@@ -283,10 +283,10 @@ get_kernel_frag_path() {
 		local cryptsetup_configs="$(ls ${common_path}/confidential_containers/cryptsetup.conf)"
 		all_configs="${all_configs} ${cryptsetup_configs}"
 
-		check_initramfs_or_die
-		info "Enabling config for confidential guest measured boot"
-		local initramfs_configs="$(ls ${common_path}/confidential_containers/initramfs.conf)"
-		all_configs="${all_configs} ${initramfs_configs}"
+#		check_initramfs_or_die
+#		info "Enabling config for confidential guest measured boot"
+#		local initramfs_configs="$(ls ${common_path}/confidential_containers/initramfs.conf)"
+#		all_configs="${all_configs} ${initramfs_configs}"
 	fi
 
 	if [[ "${conf_guest}" != "" ]];then
@@ -396,10 +396,10 @@ setup_kernel() {
 	local kernel_path=${1:-}
 	[ -n "${kernel_path}" ] || die "kernel_path not provided"
 
-	if [[ "$force_setup_generate_config" == "true" ]] && [[ -d "$kernel_path" ]];then
-		info "Remove existing directory ${kernel_path} due to '-f'"
-		rm -rf "${kernel_path}"
-	fi
+#	if [[ "$force_setup_generate_config" == "true" ]] && [[ -d "$kernel_path" ]];then
+#		info "Remove existing directory ${kernel_path} due to '-f'"
+#		rm -rf "${kernel_path}"
+#	fi
 
 	if [ -d "$kernel_path" ]; then
 		info "${kernel_path} already exist"

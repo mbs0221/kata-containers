@@ -5,7 +5,10 @@
 
 package virtcontainers
 
-import "os"
+import (
+	"os"
+	"github.com/intel-go/cpuid"
+)
 
 const (
 	tdxKvmParameterPath = "/sys/module/kvm_intel/parameters/tdx"
@@ -33,7 +36,13 @@ func availableGuestProtection() (guestProtection, error) {
 	// SEV is supported and enabled when the kvm module `sev` parameter is set to `1` (or `Y` for linux >= 5.12)
 	if _, err := os.Stat(sevKvmParameterPath); err == nil {
 		if c, err := os.ReadFile(sevKvmParameterPath); err == nil && len(c) > 0 && (c[0] == '1' || c[0] == 'Y') {
-			return sevProtection, nil
+			// CSV reuse the kvm-amd kernel module and sev/sev_es
+			// module parameters.
+			if cpuid.VendorIdentificatorString == "HygonGenuine" {
+				return csvProtection, nil
+			} else {
+				return sevProtection, nil
+			}
 		}
 	}
 

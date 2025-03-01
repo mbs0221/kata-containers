@@ -253,6 +253,14 @@ func (q *qemuAmd64) enableProtection() error {
 		q.qemuMachine.Options += "confidential-guest-support=sev"
 		logger.Info("Enabling SEV guest protection")
 		return nil
+	case csvProtection:
+		if q.qemuMachine.Options != "" {
+			q.qemuMachine.Options += ","
+		}
+		// CSV reuse the sev-object in QEMU
+		q.qemuMachine.Options += "confidential-guest-support=sev"
+		logger.Info("Enabling CSV guest protection")
+		return nil
 	case snpProtection:
 		if q.qemuMachine.Options != "" {
 			q.qemuMachine.Options += ","
@@ -296,6 +304,17 @@ func (q *qemuAmd64) appendProtectionDevice(devices []govmmQemu.Device, firmware,
 				FirmwareVolume: firmwareVolume,
 			}), "", nil
 	case sevProtection:
+		return append(devices,
+			govmmQemu.Object{
+				Type:            govmmQemu.SEVGuest,
+				ID:              "sev",
+				Debug:           false,
+				File:            firmware,
+				CBitPos:         cpuid.AMDMemEncrypt.CBitPosition,
+				ReducedPhysBits: 1,
+			}), "", nil
+	case csvProtection:
+		// CSV reuse sev-object in QEMU
 		return append(devices,
 			govmmQemu.Object{
 				Type:            govmmQemu.SEVGuest,

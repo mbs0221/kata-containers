@@ -1057,6 +1057,9 @@ const (
 	// https://www.kernel.org/doc/html/latest/virt/kvm/s390-pv.html
 	// Exclude from lint checking for it won't be used on arm64 code
 	seProtection
+
+	// China Secure Virtualization
+	csvProtection
 )
 
 var guestProtectionStr = [...]string{
@@ -1066,6 +1069,7 @@ var guestProtectionStr = [...]string{
 	sevProtection:  "sev",
 	snpProtection:  "snp",
 	tdxProtection:  "tdx",
+	csvProtection:  "csv",
 }
 
 func (gp guestProtection) String() string {

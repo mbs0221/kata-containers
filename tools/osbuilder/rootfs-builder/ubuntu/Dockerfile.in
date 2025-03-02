@@ -18,13 +18,18 @@ ENV PATH="/opt/go/bin:${PATH}"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY ./ubuntu2004.sources.list /etc/apt/sources.list
+
 RUN mkdir ${RUSTUP_HOME} ${CARGO_HOME} ${GOCACHE} && \
     chmod -R a+rwX ${RUSTUP_HOME} ${CARGO_HOME} ${GO_HOME}
 
 # makedev tries to mknod from postinst
 RUN [ -x /usr/bin/systemd-detect-virt ] || ( echo "echo docker" >/usr/bin/systemd-detect-virt && chmod +x /usr/bin/systemd-detect-virt )
 # hadolint ignore=DL3009,SC2046
-RUN apt-get update && \
+RUN \
+    echo 'Acquire::https::Verify-Peer "false";' > /etc/apt/apt.conf.d/99no-verify-peer && \
+    echo 'Acquire::https::Verify-Host "false";' > /etc/apt/apt.conf.d/99no-verify-host && \
+    apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
     apt-get --no-install-recommends -y install \
     ca-certificates \

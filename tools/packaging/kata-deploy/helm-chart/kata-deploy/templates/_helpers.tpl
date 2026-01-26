@@ -4,6 +4,46 @@
 #
 
 {{/*
+Expand the name of the chart.
+*/}}
+{{- define "kata-deploy.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "kata-deploy.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "kata-deploy.labels" -}}
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+{{ include "kata-deploy.selectorLabels" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "kata-deploy.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "kata-deploy.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Set the correct containerd conf path depending on the k8s distribution
 */}}
 {{- define "containerdConfPath" -}}
@@ -250,18 +290,3 @@ Note: EXPERIMENTAL_FORCE_GUEST_PULL only checks containerd.forceGuestPull, not c
 {{- end -}}
 {{- join "," $shimNames -}}
 {{- end -}}
-
-{{/*
-Detect if this is a Rust-based build by checking the image tag
-Returns "true" if the tag contains "-rust", otherwise returns "false"
-This is a temporary helper for dual script/rust support
-*/}}
-{{- define "kata-deploy.isRustBuild" -}}
-{{- $tag := default .Chart.AppVersion .Values.image.tag -}}
-{{- if or (contains "-rust" $tag) (contains "nightly-rust" $tag) -}}
-true
-{{- else -}}
-false
-{{- end -}}
-{{- end -}}
-

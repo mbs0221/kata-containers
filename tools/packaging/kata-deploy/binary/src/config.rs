@@ -7,6 +7,22 @@ use anyhow::{Context, Result};
 use log::info;
 use std::env;
 
+/// Containerd configuration paths and capabilities for a specific runtime
+#[derive(Debug, Clone)]
+pub struct ContainerdPaths {
+    /// File to read containerd version from and write to (non-drop-in mode)
+    pub config_file: String,
+    /// Backup file path before modification
+    pub backup_file: String,
+    /// File to add/remove drop-in imports from (drop-in mode)
+    /// None if imports are not needed (e.g., k0s auto-loads from containerd.d/)
+    pub imports_file: Option<String>,
+    /// Path to the drop-in configuration file
+    pub drop_in_file: String,
+    /// Whether drop-in files can be used (based on containerd version)
+    pub use_drop_in: bool,
+}
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub node_name: String,
@@ -359,6 +375,50 @@ impl Config {
             self.experimental_force_guest_pull_for_arch.join(",")
         );
     }
+
+    /// Get containerd configuration file paths based on runtime type and containerd version
+    pub async fn get_containerd_paths(&self, runtime: &str) -> Result<ContainerdPaths> {
+        use crate::runtime::manager;
+        
+        // Check if drop-in files can be used based on containerd version
+        let use_drop_in = manager::is_containerd_capable_of_using_drop_in_files(self, runtime).await?;
+        
+        let paths = match runtime {
+            "k0s-worker" | "k0s-controller" => ContainerdPaths {
+                config_file: "/etc/containerd/containerd.toml".to_string(),
+                backup_file: "/etc/containerd/containerd.toml.bak".to_string(), // Never used, but needed for consistency
+                imports_file: None, // k0s auto-loads from containerd.d/, imports not needed
+                drop_in_file: "/etc/containerd/containerd.d/kata-deploy.toml".to_string(),
+                use_drop_in,
+            },
+            "microk8s" => ContainerdPaths {
+                // microk8s uses containerd-template.toml instead of config.toml
+                config_file: "/etc/containerd/containerd-template.toml".to_string(),
+                backup_file: "/etc/containerd/containerd-template.toml.bak".to_string(),
+                imports_file: Some("/etc/containerd/containerd-template.toml".to_string()),
+                drop_in_file: self.containerd_drop_in_conf_file.clone(),
+                use_drop_in,
+            },
+            "k3s" | "k3s-agent" | "rke2-agent" | "rke2-server" => ContainerdPaths {
+                // k3s/rke2 generates config.toml from config.toml.tmpl on each restart
+                // We must modify the template file so our changes persist
+                config_file: "/etc/containerd/config.toml.tmpl".to_string(),
+                backup_file: "/etc/containerd/config.toml.tmpl.bak".to_string(),
+                imports_file: Some("/etc/containerd/config.toml.tmpl".to_string()),
+                drop_in_file: self.containerd_drop_in_conf_file.clone(),
+                use_drop_in,
+            },
+            _ => ContainerdPaths {
+                config_file: self.containerd_conf_file.clone(),
+                backup_file: self.containerd_conf_file_backup.clone(),
+                imports_file: Some(self.containerd_conf_file.clone()),
+                drop_in_file: self.containerd_drop_in_conf_file.clone(),
+                use_drop_in,
+            },
+        };
+        
+        Ok(paths)
+    }
 }
 
 fn get_arch() -> Result<String> {
@@ -379,8 +439,8 @@ fn get_arch() -> Result<String> {
 /// Returns only shims that are supported for that architecture
 fn get_default_shims_for_arch(arch: &str) -> &'static str {
     match arch {
-        "x86_64" => "clh cloud-hypervisor dragonball fc qemu qemu-coco-dev qemu-coco-dev-runtime-rs qemu-runtime-rs qemu-nvidia-gpu qemu-nvidia-gpu-snp qemu-nvidia-gpu-tdx qemu-snp qemu-tdx",
-        "aarch64" => "clh cloud-hypervisor dragonball fc qemu qemu-nvidia-gpu qemu-cca",
+        "x86_64" => "clh cloud-hypervisor dragonball fc qemu qemu-coco-dev qemu-coco-dev-runtime-rs qemu-runtime-rs qemu-nvidia-gpu qemu-nvidia-gpu-snp qemu-nvidia-gpu-tdx qemu-snp qemu-snp-runtime-rs qemu-tdx qemu-tdx-runtime-rs",
+        "aarch64" => "clh cloud-hypervisor dragonball fc qemu qemu-runtime-rs qemu-nvidia-gpu qemu-cca",
         "s390x" => "qemu qemu-runtime-rs qemu-se qemu-se-runtime-rs qemu-coco-dev qemu-coco-dev-runtime-rs",
         "ppc64le" => "qemu",
         _ => "qemu", // Fallback to qemu for unknown architectures

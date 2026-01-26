@@ -67,7 +67,7 @@ valid_hypervisor_paths = @QEMUTDXEXPERIMENTALVALIDHYPERVISORPATHS@
 # may stop the virtual machine from booting.
 # To see the list of default parameters, enable hypervisor debug, create a
 # container and look for 'default-kernel-parameters' log entries.
-kernel_params = "@KERNELTDXPARAMS_NV@"
+kernel_params = "@KERNELPARAMS_NV@"
 
 # Path to the firmware.
 # If you want that qemu uses the default firmware leave this option empty
@@ -356,7 +356,7 @@ msize_9p = @DEFMSIZE9P@
 # Otherwise virtio-block device is used.
 #
 # nvdimm is not supported when `confidential_guest = true`.
-disable_image_nvdimm = @DEFDISABLEIMAGENVDIMM@
+disable_image_nvdimm = @DEFDISABLEIMAGENVDIMM_NV@
 
 # Before hot plugging a PCIe device, you need to add a pcie_root_port device.
 # Use this parameter when using some large PCI bar devices, such as Nvidia GPU

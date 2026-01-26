@@ -234,7 +234,7 @@ DEFDISABLESELINUX := false
 DEFDISABLEGUESTSELINUX := true
 # Default is empty string "" to match the default golang (when commented out in config).
 # Most users will want to set this to "system_u:system_r:container_t" for SELinux support.
-DEFGUESTSELINUXLABEL := 
+DEFGUESTSELINUXLABEL :=
 
 #Default SeccomSandbox param
 #The same default policy is used by libvirt
@@ -291,6 +291,7 @@ DEFSTATICRESOURCEMGMT_TEE = true
 DEFSTATICRESOURCEMGMT_NV = true
 
 DEFDISABLEIMAGENVDIMM ?= false
+DEFDISABLEIMAGENVDIMM_NV = true
 
 DEFBINDMOUNTS := []
 
@@ -476,13 +477,11 @@ ifneq (,$(QEMUCMD))
     DEFAULTVFIOPORT_NV = root-port
     DEFAULTPCIEROOTPORT_NV = 8
 
-    KERNELPARAMS_NV =  "agent.hotplug_timeout=20"
-    KERNELPARAMS_NV += "cgroup_no_v1=all"
-
-    KERNELTDXPARAMS_NV = $(KERNELPARAMS_NV)
-    KERNELTDXPARAMS_NV += "authorize_allow_devs=pci:ALL"
-
-    KERNELSNPPARAMS_NV = $(KERNELPARAMS_NV)
+    # Disable the devtmpfs mount in guest. NVRC does this, and later kata-agent
+    # attempts this as well in a non-failing manner. Otherwise, NVRC fails when
+    # using an image and /dev is already mounted.
+    KERNELPARAMS_NV = "cgroup_no_v1=all"
+    KERNELPARAMS_NV += "devtmpfs.mount=0"
 
     # Setting this to false can lead to cgroup leakages in the host
     # Best practice for production is to set this to true
@@ -660,8 +659,6 @@ USER_VARS += DEFAULTMEMORY_NV
 USER_VARS += DEFAULTVFIOPORT_NV
 USER_VARS += DEFAULTPCIEROOTPORT_NV
 USER_VARS += KERNELPARAMS_NV
-USER_VARS += KERNELTDXPARAMS_NV
-USER_VARS += KERNELSNPPARAMS_NV
 USER_VARS += DEFAULTTIMEOUT_NV
 USER_VARS += DEFSANDBOXCGROUPONLY_NV
 USER_VARS += DEFROOTFSTYPE
@@ -788,6 +785,7 @@ USER_VARS += DEFVFIOMODE
 USER_VARS += DEFVFIOMODE_SE
 USER_VARS += BUILDFLAGS
 USER_VARS += DEFDISABLEIMAGENVDIMM
+USER_VARS += DEFDISABLEIMAGENVDIMM_NV
 USER_VARS += DEFCCAMEASUREMENTALGO
 USER_VARS += DEFSHAREDFS_QEMU_CCA_VIRTIOFS
 USER_VARS += DEFPODRESOURCEAPISOCK

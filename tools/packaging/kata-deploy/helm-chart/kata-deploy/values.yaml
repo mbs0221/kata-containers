@@ -78,6 +78,7 @@ shims:
     enabled: true
     supportedArches:
       - amd64
+      - arm64
       - s390x
     allowedHypervisorAnnotations: []
     containerd:
@@ -134,7 +135,35 @@ shims:
       httpsProxy: ""
       noProxy: ""
 
+  qemu-snp-runtime-rs:
+    enabled: true
+    supportedArches:
+      - amd64
+    allowedHypervisorAnnotations: []
+    containerd:
+      snapshotter: nydus
+      forceGuestPull: false
+    crio:
+      guestPull: true
+    agent:
+      httpsProxy: ""
+      noProxy: ""
+
   qemu-tdx:
+    enabled: true
+    supportedArches:
+      - amd64
+    allowedHypervisorAnnotations: []
+    containerd:
+      snapshotter: nydus
+      forceGuestPull: false
+    crio:
+      guestPull: true
+    agent:
+      httpsProxy: ""
+      noProxy: ""
+
+  qemu-tdx-runtime-rs:
     enabled: true
     supportedArches:
       - amd64
@@ -273,3 +302,41 @@ env:
 #            deployment, use nodeSelector manually.
 node-feature-discovery:
   enabled: false
+
+# Verification
+# Post-install verification to validate Kata Containers is working correctly.
+# When a pod spec is provided, runs a verification pod after installation.
+#
+# Provide your own pod YAML that validates your specific deployment requirements.
+#
+verification:
+  # Namespace where verification pod will be created
+  namespace: default
+  
+  # Timeout for the verification pod itself to complete (seconds)
+  # This is how long to wait for the verification pod to run and finish successfully.
+  # Default: 180s (3 minutes)
+  timeout: 180
+  
+  # Timeout for kata-deploy DaemonSet rollout (seconds)
+  # This includes waiting for the kata-deploy image to be pulled from the registry
+  # and pods to start. Large images over slow networks may need more time.
+  # Default: 1200s (20 minutes)
+  daemonsetTimeout: 1200
+  
+  # Pod spec for verification (optional)
+  # If provided, a verification job will run after install/upgrade.
+  # If empty, no verification is performed.
+  #
+  # Provide your own pod YAML that validates your deployment works correctly.
+  # The pod must:
+  #   - Have metadata.name set
+  #   - Include the correct runtimeClassName (e.g., kata-qemu, kata-qemu-snp)
+  #   - Include any annotations needed (e.g., cc_init_data for CoCo)
+  #   - Exit 0 on success, non-zero on failure
+  #
+  # Usage:
+  #   helm install kata-deploy ... \
+  #     --set-file verification.pod=/path/to/your-verification-pod.yaml
+  #
+  pod: ""

@@ -1,0 +1,52 @@
+I1122 17:06:29.876834   18620 initconfiguration.go:262] loading configuration from "/tmp/hygon-k8s/kubeadm.yaml"
+[init] Using Kubernetes version: v1.35.10
+I1122 17:06:29.880752   18620 envvar.go:172] "Feature gate default state" feature="ClientsPreferCBOR" enabled=false
+I1122 17:06:29.880773   18620 envvar.go:172] "Feature gate default state" feature="InOrderInformers" enabled=true
+I1122 17:06:29.880780   18620 envvar.go:172] "Feature gate default state" feature="InOrderInformersBatchProcess" enabled=true
+I1122 17:06:29.880786   18620 envvar.go:172] "Feature gate default state" feature="InformerResourceVersion" enabled=true
+I1122 17:06:29.880791   18620 envvar.go:172] "Feature gate default state" feature="WatchListClient" enabled=true
+I1122 17:06:29.880798   18620 envvar.go:172] "Feature gate default state" feature="ClientsAllowCBOR" enabled=false
+I1122 17:06:29.882147   18620 kubeconfig.go:667] ensuring that the ClusterRoleBinding for the kubeadm:cluster-admins Group exists
+[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+I1122 17:06:29.895039   18620 uploadconfig.go:111] [upload-config] Uploading the kubeadm ClusterConfiguration to a ConfigMap
+[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+I1122 17:06:29.905150   18620 uploadconfig.go:125] [upload-config] Uploading the kubelet component config to a ConfigMap
+[upload-certs] Skipping phase. Please see --upload-certs
+[mark-control-plane] Marking the node hygon-1 as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+[mark-control-plane] Marking the node hygon-1 as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Configured RBAC rules to allow the API server kubelet client certificate to access the kubelet API
+[bootstrap-token] Creating the "cluster-info" ConfigMap in the "kube-public" namespace
+I1122 17:06:30.085492   18620 clusterinfo.go:58] [bootstrap-token] copying the cluster from admin.conf to the bootstrap kubeconfig
+I1122 17:06:30.086047   18620 clusterinfo.go:70] [bootstrap-token] creating/updating ConfigMap in kube-public namespace
+I1122 17:06:30.088722   18620 clusterinfo.go:84] creating the RBAC rules for exposing the cluster-info ConfigMap in the kube-public namespace
+[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+I1122 17:06:30.485446   18620 kubeletfinalize.go:90] [kubelet-finalize] Assuming that kubelet client certificate rotation is enabled: found "/var/lib/kubelet/pki/kubelet-client-current.pem"
+I1122 17:06:30.486548   18620 kubeletfinalize.go:144] [kubelet-finalize] Restarting the kubelet to enable client certificate rotation
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.12.75:6443 --token <value withheld> \
+	--discovery-token-ca-cert-hash sha256:781c1ee0bfad1a04891ab3db209d6e63a7bffb05ffa3c25b9f08413ac9069512 

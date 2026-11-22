@@ -1,0 +1,2 @@
+time="2026-11-22T16:59:16+08:00" level=warning msg="DEPRECATION: The support for cgroup v1 is deprecated since containerd v2.2 and will be removed by no later than May 2029. Upgrade the host to use cgroup v2."
+ctr: failed to create shim task: OCI runtime create failed: runc did not terminate successfully: exit status 2

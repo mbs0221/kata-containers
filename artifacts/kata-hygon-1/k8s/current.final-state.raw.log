@@ -1,0 +1,21 @@
+enabled
+enabled
+active
+active
+active
+NAME      STATUS   ROLES           AGE   VERSION    INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                                              KERNEL-VERSION                      CONTAINER-RUNTIME
+hygon-1   Ready    control-plane   12m   v1.35.10   192.168.12.75   <none>        Alibaba Group Enterprise Linux Server 7.2 (Paladin)   4.19.91-013.ali4000.alios7.x86_64   containerd://2.3.6
+NAME         READY   STATUS      RESTARTS   AGE     IP            NODE      NOMINATED NODE   READINESS GATES
+kata-smoke   0/1     Completed   0          7m40s   10.244.0.12   hygon-1   <none>           <none>
+NAME                       READY   STATUS    RESTARTS   AGE     IP            NODE      NOMINATED NODE   READINESS GATES
+coredns-7d764666f9-4k7dk   1/1     Running   0          9m34s   10.244.0.10   hygon-1   <none>           <none>
+coredns-7d764666f9-rps9c   1/1     Running   0          9m34s   10.244.0.11   hygon-1   <none>           <none>
+6.18.15
+c8b152e98fb58239f028b4133ab904e2089aaf79eca0706f5130f046f7bf4b52  /opt/kubernetes/bin/containerd
+3c8d24628a006cf52d8791cf8c4586f3a0cb7e29bed8ae4264aca3cb1edb972d  /opt/kubernetes/bin/runc-v1.3.7
+148ac60dadb576ca77667a425fc8cfa7d7f1d4b2be0816a04f557b960ed97738  /opt/kata/runtime-rs/bin/containerd-shim-kata-v2
+a9a9174737c84f19a3cafc41c6e93fdc1d25232bbf17a4a592c6ffcab0358e36  /opt/kata/bin/qemu-system-x86_64
+BOOT_IMAGE=/vmlinuz-4.19.91-013.ali4000.alios7.x86_64 root=UUID=f8b934cf-67cf-437c-a1f8-a8229af1d0e9 ro crashkernel=512M console=tty0 console=ttyS0,115200n8 mem_encrypt=off memmap=48G$0x100000000 fsgsbase amd_iommu=off
+0
+2f080406a72875d57951ed244e0f9f58ff460eba1d6c3c548e9fe91b7d9da097  /etc/fstab
+0e72c4862ad272ac232f5eff3f234ff7165771fd3869a4e83df1534c1ed69e1c  /etc/fstab.pre-k8s

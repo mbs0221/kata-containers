@@ -230,6 +230,7 @@ async fn real_main(init_mode: bool) -> std::result::Result<(), Box<dyn std::erro
         lazy_static::initialize(&AGENT_CONFIG);
 
         init_agent_as_init(&logger, AGENT_CONFIG.unified_cgroup_hierarchy)?;
+        preload_virtio_drivers(&logger)?;
         drop(logger_async_guard);
     } else {
         lazy_static::initialize(&AGENT_CONFIG);
@@ -627,6 +628,39 @@ fn init_agent_as_init(logger: &Logger, unified_cgroup_hierarchy: bool) -> Result
         warn!(logger, "failed to set hostname");
     }
 
+    Ok(())
+}
+
+// The agent needs vsock and Kata's virtual devices before the host can request
+// kernel modules. A module-backed guest kernel must load these drivers here.
+fn preload_virtio_drivers(logger: &Logger) -> Result<()> {
+    let release = fs::read_to_string("/proc/sys/kernel/osrelease")?;
+    let modules = [
+        ("virtio_console", "kernel/drivers/char/virtio_console.ko"),
+        ("virtio_net", "kernel/drivers/net/virtio_net.ko"),
+        ("virtio_scsi", "kernel/drivers/scsi/virtio_scsi.ko"),
+        (
+            "vmw_vsock_virtio_transport",
+            "kernel/net/vmw_vsock/vmw_vsock_virtio_transport.ko",
+        ),
+    ];
+    for (name, relative_path) in modules {
+        let module = Path::new("/lib/modules")
+            .join(release.trim())
+            .join(relative_path);
+        if !module.exists() {
+            continue;
+        }
+
+        let status = Command::new("/sbin/modprobe")
+            .arg(name)
+            .status()
+            .with_context(|| format!("preload {name}"))?;
+        if !status.success() {
+            return Err(anyhow!("preload {name} exited with {status}"));
+        }
+        info!(logger, "preloaded virtio driver"; "module" => name);
+    }
     Ok(())
 }
 

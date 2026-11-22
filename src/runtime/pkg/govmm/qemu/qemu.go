@@ -391,7 +391,6 @@ func (object Object) QemuParams(config *Config) []string {
 		objectParams = append(objectParams, fmt.Sprintf("cbitpos=%d", object.CBitPos))
 		objectParams = append(objectParams, fmt.Sprintf("reduced-phys-bits=%d", object.ReducedPhysBits))
 		if cpuid.VendorIdentificatorString == "HygonGenuine" {
-			objectParams = append(objectParams, "kernel-hashes=on")
 			objectParams = append(objectParams, fmt.Sprintf("policy=%d", object.CsvPolicy))
 		}
 

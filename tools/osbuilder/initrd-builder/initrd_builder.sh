@@ -25,22 +25,12 @@ privileged_cmd=(sudo)
 usage()
 {
 	error="${1:-0}"
-	cat <<EOF
-Usage: ${script_name} [options] <rootfs-dir>
-	This script creates a Kata Containers initrd image file based on the
-	<rootfs-dir> directory.
-
-Options:
-	-h Show help
-	-o Set the path where the generated image file is stored.
-	   DEFAULT: the path stored in the environment variable INITRD_IMAGE
-
-Extra environment variables:
-	AGENT_BIN:  use it to change the expected agent binary name
-		    DEFAULT: kata-agent
-	AGENT_INIT: use kata agent as init process
-		    DEFAULT: no
-EOF
+	printf '%s\n' \
+		"Usage: ${script_name} [options] <rootfs-dir>" \
+		"This script creates a Kata Containers initrd image from the rootfs directory." \
+		"Options: -h (help), -o PATH (output image; default INITRD_IMAGE)." \
+		"AGENT_BIN selects the agent binary (default kata-agent)." \
+		"AGENT_INIT=yes uses kata-agent as init (default no)."
 exit "${error}"
 }
 

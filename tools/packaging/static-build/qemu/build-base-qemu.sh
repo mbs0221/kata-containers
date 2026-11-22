@@ -47,7 +47,8 @@ CACHE_TIMEOUT=$(date +"%Y-%m-%d")
 container_image="${QEMU_CONTAINER_BUILDER:-$(get_qemu_image_name)}"
 [ "${CROSS_BUILD}" == "true" ] && container_image="${container_image}-cross-build"
 
-${container_engine} pull ${container_image} || ("${container_engine}" build \
+if [ -z "${QEMU_CONTAINER_BUILDER:-}" ] || ! ${container_engine} image inspect "${container_image}" >/dev/null 2>&1; then
+${container_engine} pull "${container_image}" || ("${container_engine}" build \
 	--build-arg CACHE_TIMEOUT="${CACHE_TIMEOUT}" \
 	--build-arg http_proxy="${http_proxy}" \
 	--build-arg https_proxy="${https_proxy}" \
@@ -58,6 +59,7 @@ ${container_engine} pull ${container_image} || ("${container_engine}" build \
 	-t "${container_image}" && \
 	# No-op unless PUSH_TO_REGISTRY is exported as "yes"
 	push_to_registry "${container_image}")
+fi
 
 "${container_engine}" run --rm -i \
 	--env BUILD_SUFFIX="${build_suffix}" \

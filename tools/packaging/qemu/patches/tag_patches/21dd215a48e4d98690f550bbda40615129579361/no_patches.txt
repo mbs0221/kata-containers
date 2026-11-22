@@ -1,0 +1,1 @@
+No version-specific Kata patches are required for this pinned Hygon QEMU commit.

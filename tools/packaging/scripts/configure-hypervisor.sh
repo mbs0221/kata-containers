@@ -379,20 +379,22 @@ generate_qemu_options() {
 	qemu_options+=(size:--disable-dmg)
 	qemu_options+=(size:--disable-parallels)
 
-	# Disable new available features from 8.2.4
-	qemu_options+=(size:--disable-colo-proxy)
-	qemu_options+=(size:--disable-debug-graph-lock)
-	qemu_options+=(size:--disable-hexagon-idef-parser)
-	qemu_options+=(size:--disable-libdw)
-	qemu_options+=(size:--disable-pipewire)
-	qemu_options+=(size:--disable-pixman)
-	qemu_options+=(size:--disable-relocatable)
-	qemu_options+=(size:--disable-rutabaga-gfx)
-	qemu_options+=(size:--disable-vmdk)
-	qemu_options+=(size:--disable-avx512bw)
-	qemu_options+=(size:--disable-vpc)
-	qemu_options+=(size:--disable-vhdx)
-	qemu_options+=(size:--disable-hv-balloon)
+	# These options are not accepted by the CSV-capable QEMU 6.2 branch.
+	if gt_eq "${qemu_version}" "8.2.4" ; then
+		qemu_options+=(size:--disable-colo-proxy)
+		qemu_options+=(size:--disable-debug-graph-lock)
+		qemu_options+=(size:--disable-hexagon-idef-parser)
+		qemu_options+=(size:--disable-libdw)
+		qemu_options+=(size:--disable-pipewire)
+		qemu_options+=(size:--disable-pixman)
+		qemu_options+=(size:--disable-relocatable)
+		qemu_options+=(size:--disable-rutabaga-gfx)
+		qemu_options+=(size:--disable-vmdk)
+		qemu_options+=(size:--disable-avx512bw)
+		qemu_options+=(size:--disable-vpc)
+		qemu_options+=(size:--disable-vhdx)
+		qemu_options+=(size:--disable-hv-balloon)
+	fi
 
 	# Disable various features based on the qemu_version
 	if gt_eq "${qemu_version}" "9.1.0" ; then
@@ -449,7 +451,9 @@ generate_qemu_options() {
 	# for that architecture
 	if [ "$arch" == x86_64 ]; then
 		qemu_options+=(speed:--enable-avx2)
-		qemu_options+=(speed:--enable-avx512bw)
+		if gt_eq "${qemu_version}" "8.2.4" ; then
+			qemu_options+=(speed:--enable-avx512bw)
+		fi
 	else
 		qemu_options+=(speed:--disable-avx2)
 	fi

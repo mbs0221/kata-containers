@@ -21,6 +21,12 @@ CC=""
 DESTDIR=${DESTDIR:-${PWD}}
 PREFIX=${PREFIX:-/opt/kata}
 container_image="${SHIM_V2_CONTAINER_BUILDER:-$(get_shim_v2_image_name)}"
+common_git_dir="$(git -C "${repo_root_dir}" rev-parse --path-format=absolute --git-common-dir)"
+git_mount_args=()
+case "${common_git_dir}" in
+	"${repo_root_dir}"/*) ;;
+	*) git_mount_args=(-v "${common_git_dir}:${common_git_dir}:ro") ;;
+esac
 
 EXTRA_OPTS="${EXTRA_OPTS:-""}"
 
@@ -38,6 +44,7 @@ if [ "${MEASURED_ROOTFS}" == "yes" ]; then
 	EXTRA_OPTS+=" ROOTMEASURECONFIG=\"${root_measure_config}\""
 fi
 
+if [ -z "${SHIM_V2_CONTAINER_BUILDER:-}" ] || ! docker image inspect "${container_image}" >/dev/null 2>&1; then
 docker pull ${container_image} || \
 	(docker ${BUILDX} build ${PLATFORM}  \
 		--build-arg GO_VERSION="${GO_VERSION}" \
@@ -45,6 +52,7 @@ docker pull ${container_image} || \
 		-t "${container_image}" \
 		"${script_dir}" && \
 	 push_to_registry "${container_image}")
+fi
 
 arch=${ARCH:-$(uname -m)}
 GCC_ARCH=${arch}
@@ -56,7 +64,7 @@ fi
 #Build rust project using cross build musl image to speed up
 [[ "${CROSS_BUILD}" == "true" && ${ARCH} != "s390x" ]] && container_image="messense/rust-musl-cross:${GCC_ARCH}-musl" && CC=${GCC_ARCH}-unknown-linux-musl-gcc
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
 	--env CROSS_BUILD=${CROSS_BUILD} \
 	--env ARCH=${ARCH} \
 	--env CC="${CC}" \
@@ -65,7 +73,7 @@ docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" \
 	"${container_image}" \
 	bash -c "make clean-generated-files && make PREFIX=${PREFIX} QEMUCMD=qemu-system-${arch}"
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
 	--env CROSS_BUILD=${CROSS_BUILD} \
         --env ARCH=${ARCH} \
         --env CC="${CC}" \
@@ -76,13 +84,13 @@ docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" \
 
 [ "${CROSS_BUILD}" == "true" ] && container_image="${container_image_bk}-cross-build"
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
 	-w "${repo_root_dir}/src/runtime" \
 	--user "$(id -u)":"$(id -g)" \
 	"${container_image}" \
 	bash -c "make clean-generated-files && make PREFIX=${PREFIX} QEMUCMD=qemu-system-${arch} ${EXTRA_OPTS}"
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
 	-w "${repo_root_dir}/src/runtime" \
 	--user "$(id -u)":"$(id -g)" \
 	"${container_image}" \

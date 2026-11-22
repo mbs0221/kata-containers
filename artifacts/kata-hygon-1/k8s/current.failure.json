@@ -1,0 +1,22 @@
+{
+  "status": "runtime-fail",
+  "stage": "kubeadm-init-control-plane",
+  "host": "hygon-1",
+  "host_kernel": "4.19.91-013.ali4000.alios7.x86_64",
+  "source_commit": "fd021f4438475facb3075c9240504d443bf54125",
+  "kubernetes": "v1.35.10",
+  "containerd": "v2.3.6",
+  "runc": "v1.5.3",
+  "cgroup_version": "v1",
+  "cgroup_driver": "systemd",
+  "failCgroupV1": false,
+  "kubeadm_preflight_ignored": ["SystemVerification"],
+  "observed": "Kubelet starts and reaches CRI, but static control-plane Pod sandboxes fail at runc create with exit status 2; kubeadm wait-control-plane times out.",
+  "root_cause": "unverified",
+  "init_stdout_sha256": "3a81d17a275acc782684c91917adbf7b785593768da540ddab1de9c33f7f07f0",
+  "kubelet_journal_sha256": "a09cb7ce612485f463f45e7d232347521c675c0fb90fcc322faafe034bb8b4a9",
+  "containerd_journal_sha256": "4d4cf079b52582104c903bc2ba65d9c3ce7d41e02a002b7070bf174d1d1dbae2",
+  "runc_trace_sha256": "b2d9df1e86258f8bf6f76c05125b451240c585914c8675d58879bf9eac0a296f",
+  "containerd_config_sha256": "550125a4d4a1f58bc601f4db1311f9cbc03c087c3ed310250498e4f57e68da1e",
+  "kubeadm_config_sha256": "f14e89f3fb4172857ec1621116f57262329723e819ab24035b654af2393ea6eb"
+}

@@ -1,0 +1,18 @@
+[Unit]
+Description=Kubernetes-only containerd (isolated from Docker)
+Documentation=https://containerd.io
+After=network.target local-fs.target
+
+[Service]
+Type=notify
+ExecStart=/opt/kubernetes/bin/containerd --config /etc/kubernetes/containerd.toml
+Environment=PATH=/opt/kubernetes/bin:/usr/local/bin:/usr/bin:/bin
+Delegate=yes
+KillMode=process
+Restart=always
+RestartSec=5
+LimitNOFILE=1048576
+TasksMax=infinity
+
+[Install]
+WantedBy=multi-user.target

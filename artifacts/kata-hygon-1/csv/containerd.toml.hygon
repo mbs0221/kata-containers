@@ -1,0 +1,53 @@
+version = 4
+root = '/var/lib/containerd-k8s'
+state = '/run/containerd-k8s'
+imports = []
+
+[proxy_plugins.nydus]
+  type = 'snapshot'
+  address = '/run/containerd-nydus/containerd-nydus-grpc.sock'
+
+[plugins.'io.containerd.cri.v1.images']
+  disable_snapshot_annotations = false
+  discard_unpacked_layers = false
+
+[plugins.'io.containerd.server.v1.grpc']
+  address = '/run/containerd-k8s/containerd.sock'
+  uid = 0
+  gid = 0
+
+[plugins.'io.containerd.server.v1.ttrpc']
+  address = '/run/containerd-k8s/containerd.sock.ttrpc'
+  uid = 0
+  gid = 0
+
+[plugins.'io.containerd.cri.v1.images'.pinned_images]
+  sandbox = 'registry.k8s.io/pause:3.10.1'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd]
+  default_runtime_name = 'runc'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc]
+  runtime_type = 'io.containerd.runc.v2'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options]
+  BinaryName = '/opt/kubernetes/bin/runc-v1.3.7'
+  SystemdCgroup = false
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.kata]
+  runtime_type = 'io.containerd.kata.v2'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.kata.options]
+  ConfigPath = '/opt/kata/share/defaults/kata-containers/runtime-rs/configuration-qemu-runtime-rs.toml'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.kata-hygon-csv2]
+  runtime_type = 'io.containerd.kata-hygon.v2'
+  snapshotter = 'nydus'
+
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.kata-hygon-csv2.options]
+  ConfigPath = '/opt/kata-hygon/share/defaults/kata-containers/configuration-qemu-csv2.toml'
+
+[plugins.'io.containerd.cri.v1.runtime'.cni]
+  bin_dirs = ['/opt/cni/bin']
+  conf_dir = '/etc/cni/net.d'
+  max_conf_num = 1

@@ -1,0 +1,38 @@
+RUN_ID=serial-cr-v4
+api_major:          1
+api_minor:          2
+platform_state:     CSV_STATE_WORKING
+owner:              PLATFORM_STATE_SELF_OWN
+chip_secure:        SECURE
+fw_enc:             ENCRYPTED
+fw_sign:            SIGNED
+CSV:                CSV CSV2
+build id:           1616
+guest_count:        1
+is HGSC imported:   YES
+maximum CVMs:       15
+  csv guest:        11
+  csv2 guest:       15
+  csv3 guest:       0
+platform_status command success!
+
+[csv] Command successful!
+POST_TEARDOWN
+api_major:          1
+api_minor:          2
+platform_state:     CSV_STATE_INIT
+owner:              PLATFORM_STATE_SELF_OWN
+chip_secure:        SECURE
+fw_enc:             ENCRYPTED
+fw_sign:            SIGNED
+CSV:                CSV CSV2
+build id:           1616
+guest_count:        0
+is HGSC imported:   YES
+maximum CVMs:       15
+  csv guest:        11
+  csv2 guest:       15
+  csv3 guest:       0
+platform_status command success!
+
+[csv] Command successful!

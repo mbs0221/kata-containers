@@ -1,0 +1,13 @@
+[Unit]
+Description=Allow Kata Kubernetes CNI bridge forwarding
+After=docker.service
+Before=kubelet.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c '/usr/sbin/iptables -C FORWARD -i cni0 -j ACCEPT || /usr/sbin/iptables -I FORWARD 1 -i cni0 -j ACCEPT'
+ExecStart=/bin/sh -c '/usr/sbin/iptables -C FORWARD -o cni0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || /usr/sbin/iptables -I FORWARD 2 -o cni0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT'
+
+[Install]
+WantedBy=multi-user.target

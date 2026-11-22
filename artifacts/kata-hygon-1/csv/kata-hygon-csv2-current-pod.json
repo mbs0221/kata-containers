@@ -1,0 +1,150 @@
+{
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"name\":\"kata-hygon-csv2-smoke\",\"namespace\":\"default\"},\"spec\":{\"automountServiceAccountToken\":false,\"containers\":[{\"args\":[\"echo CSV_WORKLOAD_OK; uname -r; sleep 90; echo CSV_WORKLOAD_DONE\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"docker.m.daocloud.io/library/ubuntu:24.04\",\"imagePullPolicy\":\"Always\",\"name\":\"workload\"}],\"nodeName\":\"hygon-1\",\"restartPolicy\":\"Never\",\"runtimeClassName\":\"kata-hygon-csv2\"}}\n"
+        },
+        "creationTimestamp": "2026-11-22T16:47:15Z",
+        "generation": 1,
+        "name": "kata-hygon-csv2-smoke",
+        "namespace": "default",
+        "resourceVersion": "24449",
+        "uid": "c53f045c-841a-44c0-bd97-d55eb84d42b0"
+    },
+    "spec": {
+        "automountServiceAccountToken": false,
+        "containers": [
+            {
+                "args": [
+                    "echo CSV_WORKLOAD_OK; uname -r; sleep 90; echo CSV_WORKLOAD_DONE"
+                ],
+                "command": [
+                    "/bin/sh",
+                    "-c"
+                ],
+                "image": "docker.m.daocloud.io/library/ubuntu:24.04",
+                "imagePullPolicy": "Always",
+                "name": "workload",
+                "resources": {},
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File"
+            }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "nodeName": "hygon-1",
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 0,
+        "restartPolicy": "Never",
+        "runtimeClassName": "kata-hygon-csv2",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "default",
+        "serviceAccountName": "default",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+            {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+            },
+            {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+            }
+        ]
+    },
+    "status": {
+        "conditions": [
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-11-22T16:49:03Z",
+                "observedGeneration": 1,
+                "status": "False",
+                "type": "PodReadyToStartContainers"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-11-22T16:47:15Z",
+                "observedGeneration": 1,
+                "reason": "PodCompleted",
+                "status": "True",
+                "type": "Initialized"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-11-22T16:49:02Z",
+                "observedGeneration": 1,
+                "reason": "PodCompleted",
+                "status": "False",
+                "type": "Ready"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-11-22T16:49:02Z",
+                "observedGeneration": 1,
+                "reason": "PodCompleted",
+                "status": "False",
+                "type": "ContainersReady"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-11-22T16:47:15Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodScheduled"
+            }
+        ],
+        "containerStatuses": [
+            {
+                "containerID": "containerd://83cd0d02de4e453096a917874e69b96751e40c20b533d934fcf321e3b38b055d",
+                "image": "docker.m.daocloud.io/library/ubuntu:24.04",
+                "imageID": "docker.m.daocloud.io/library/ubuntu@sha256:9c7f200c07e3d4a03e7249d2c16bf66a51120fb876aa2242cf31451412543289",
+                "lastState": {},
+                "name": "workload",
+                "ready": false,
+                "resources": {},
+                "restartCount": 0,
+                "started": false,
+                "state": {
+                    "terminated": {
+                        "containerID": "containerd://83cd0d02de4e453096a917874e69b96751e40c20b533d934fcf321e3b38b055d",
+                        "exitCode": 0,
+                        "finishedAt": "2026-11-22T16:49:01Z",
+                        "reason": "Completed",
+                        "startedAt": "2026-11-22T16:47:31Z"
+                    }
+                },
+                "user": {
+                    "linux": {
+                        "gid": 0,
+                        "supplementalGroups": [
+                            0
+                        ],
+                        "uid": 0
+                    }
+                }
+            }
+        ],
+        "hostIP": "192.168.12.75",
+        "hostIPs": [
+            {
+                "ip": "192.168.12.75"
+            }
+        ],
+        "observedGeneration": 1,
+        "phase": "Succeeded",
+        "podIP": "10.244.0.36",
+        "podIPs": [
+            {
+                "ip": "10.244.0.36"
+            }
+        ],
+        "qosClass": "BestEffort",
+        "startTime": "2026-11-22T16:47:15Z"
+    }
+}

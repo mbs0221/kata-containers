@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kata-hygon-csv2-smoke
+  namespace: default
+spec:
+  nodeName: hygon-1
+  runtimeClassName: kata-hygon-csv2
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  containers:
+  - name: workload
+    image: docker.m.daocloud.io/library/ubuntu:24.04
+    imagePullPolicy: Always
+    command: ["/bin/sh", "-c"]
+    args: ["echo CSV_WORKLOAD_OK; uname -r; sleep 90; echo CSV_WORKLOAD_DONE"]

@@ -1,0 +1,14 @@
+[Unit]
+Description=Nydus proxy snapshotter for Kata guest image pull
+After=local-fs.target
+Before=containerd-k8s.service
+
+[Service]
+Type=simple
+RuntimeDirectory=containerd-nydus
+ExecStart=/opt/kata-hygon/bin/containerd-nydus-grpc --config /etc/nydus/config-proxy.toml --log-to-stdout
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

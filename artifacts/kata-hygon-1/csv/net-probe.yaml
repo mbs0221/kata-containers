@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kata-hygon-net-probe
+  namespace: default
+spec:
+  nodeName: hygon-1
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  containers:
+  - name: probe
+    image: docker.io/library/busybox:1.36.1
+    imagePullPolicy: Never
+    command: ["/bin/sh", "-c"]
+    args: ["nslookup docker.m.daocloud.io; wget -S --spider -T 8 https://docker.m.daocloud.io/v2/"]

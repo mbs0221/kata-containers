@@ -1,0 +1,151 @@
+#!/usr/bin/env expect
+
+# Boot one CSV2 VM, execute a guest command, verify HAG's live guest count,
+# and exit only the QEMU instance owned by this run.
+# Usage: run-hygon-csv-vm.exp HOST KNOWN_HOSTS QEMU DATA_DIR FIRMWARE KERNEL INITRD HAG LOG RUN_ID ?agent-diagnostic?
+
+if {$argc != 10 && $argc != 11} {
+    puts stderr "usage: $argv0 HOST KNOWN_HOSTS QEMU DATA_DIR FIRMWARE KERNEL INITRD HAG LOG RUN_ID ?agent-diagnostic?"
+    exit 2
+}
+
+lassign $argv host known_hosts qemu data_dir firmware kernel initrd hag log_path run_id
+set diagnostic_mode [expr {$argc == 11 ? [lindex $argv 10] : ""}]
+set agent_diagnostic [expr {$diagnostic_mode eq "agent-diagnostic" || $diagnostic_mode eq "agent-modprobe-diagnostic"}]
+if {$argc == 11 && !$agent_diagnostic} {
+    puts stderr "invalid diagnostic mode"
+    exit 2
+}
+foreach value [list $host $run_id] {
+    if {![regexp {^[A-Za-z0-9._-]+$} $value]} {
+        puts stderr "unsafe host or run ID"
+        exit 2
+    }
+}
+foreach path [list $known_hosts $qemu $data_dir $firmware $kernel $initrd $hag $log_path] {
+    if {![regexp {^/[A-Za-z0-9._/-]+$} $path]} {
+        puts stderr "unsafe path: $path"
+        exit 2
+    }
+}
+
+set trace_fd [open $log_path a]
+puts $trace_fd "\nRUN_ID=$run_id QEMU=$qemu DATA_DIR=$data_dir FIRMWARE=$firmware KERNEL=$kernel INITRD=$initrd POLICY=0x5"
+close $trace_fd
+
+set timeout 45
+log_file -a $log_path
+log_user 0
+set ssh_options [list -o ControlMaster=no -o BatchMode=yes \
+    -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$known_hosts \
+    -o ConnectTimeout=8]
+
+set guest_init "/bin/sh"
+set agent_params ""
+set extra_devices ""
+if {$agent_diagnostic} {
+    if {$diagnostic_mode eq "agent-diagnostic"} {
+        set guest_init "/sbin/init"
+    }
+    set agent_params " agent.log=debug agent.log_vport=0"
+    set extra_devices " -device vhost-vsock-pci,guest-cid=5"
+}
+set qemu_cmd "sudo -A $qemu -L $data_dir -name kata-hygon-csv2-smoke -enable-kvm -cpu host -m 4096 -smp 2 -nographic -nodefaults -vga none -serial mon:stdio -no-reboot -kernel $kernel -initrd $initrd -append 'console=ttyS0,115200 rdinit=$guest_init$agent_params' -drive if=pflash,format=raw,unit=0,file=$firmware,readonly=on -object sev-guest,id=sev0,policy=0x5,cbitpos=47,reduced-phys-bits=5 -machine q35,memory-encryption=sev0$extra_devices"
+spawn -noecho ssh {*}$ssh_options -tt -- $host $qemu_cmd
+
+if {$agent_diagnostic} {
+    if {$diagnostic_mode eq "agent-modprobe-diagnostic"} {
+        expect {
+            -re {\r?\n~? ?# } {}
+            eof {wait; puts stderr "diagnostic: guest shell exited before modprobe; raw=$log_path"; exit 1}
+            timeout {send -- "\001x"; expect eof; wait; puts stderr "diagnostic: shell timeout; raw=$log_path"; exit 1}
+        }
+        send -- "stty -echo\r"
+        expect {
+            -re {\r?\n~? ?# } {}
+            eof {wait; puts stderr "diagnostic: guest shell exited before tracing; raw=$log_path"; exit 1}
+            timeout {send -- "\001x"; expect eof; wait; puts stderr "diagnostic: stty timeout; raw=$log_path"; exit 1}
+        }
+        send -- "mount -t proc proc /proc; mount -t sysfs sys /sys; mount -t devtmpfs dev /dev; mount -t tracefs tracefs /sys/kernel/tracing; modprobe vmw_vsock_virtio_transport; cd /sys/kernel/tracing; echo 0 > tracing_on; echo > trace; for e in socket bind listen setsockopt getsockopt ioctl fcntl; do echo 1 > events/syscalls/sys_enter_\$e/enable; echo 1 > events/syscalls/sys_exit_\$e/enable; done; echo 1 > tracing_on; /sbin/init; echo AGENT_EXIT:\$?; echo 0 > tracing_on; echo TRACE_BEGIN; tail -n 100 trace; echo TRACE_DONE\r"
+    }
+    set timeout 30
+    expect {
+        -re {TRACE_DONE} {send -- "\001x"; expect eof; wait; puts stderr "diagnostic: agent syscall trace captured; raw=$log_path"; exit 1}
+        eof {wait; puts stderr "diagnostic: agent VM exited; raw=$log_path"; exit 1}
+        timeout {send -- "\001x"; expect eof; wait; puts stderr "diagnostic: agent VM ran for 30 seconds; raw=$log_path"; exit 1}
+    }
+}
+
+expect {
+    -re {\r?\n~? ?# } {}
+    -re {No bootable option was found|Failed to find any grub configuration} {
+        puts stderr "runtime-fail: firmware could not boot the guest kernel; raw=$log_path"
+        send -- "\001x"
+        expect eof
+        wait
+        exit 1
+    }
+    eof {
+        puts stderr "runtime-fail: QEMU exited before the guest shell; raw=$log_path"
+        wait
+        exit 1
+    }
+    timeout {
+        puts stderr "runtime-fail: guest shell timed out; raw=$log_path"
+        send -- "\001x"
+        expect eof
+        wait
+        exit 124
+    }
+}
+
+send -- "stty -echo\r"
+expect {
+    -re {\r?\n~? ?# } {}
+    eof {puts stderr "runtime-fail: guest shell exited before workload; raw=$log_path"; wait; exit 1}
+    timeout {puts stderr "runtime-fail: guest stty timed out; raw=$log_path"; send -- "\001x"; expect eof; wait; exit 124}
+}
+
+send -- "uname -r\r"
+expect {
+    -re {5\.10\.134-hygon-csv\r*\n~? ?# } {}
+    eof {puts stderr "runtime-fail: guest exited during uname; raw=$log_path"; wait; exit 1}
+    timeout {puts stderr "runtime-fail: guest uname missing; raw=$log_path"; send -- "\001x"; expect eof; wait; exit 124}
+}
+
+set platform_log "${log_path}.platform"
+set platform_fd [open $platform_log a]
+puts $platform_fd "RUN_ID=$run_id"
+set platform_status [catch {exec ssh {*}$ssh_options -- $host sudo -A $hag csv platform_status} platform_output]
+puts $platform_fd $platform_output
+close $platform_fd
+if {$platform_status != 0 || ![regexp {guest_count:[[:space:]]*[1-9][0-9]*} $platform_output]} {
+    puts stderr "runtime-fail: HAG did not report a live CSV guest; raw=$log_path platform=$platform_log"
+    send -- "\001x"
+    expect eof
+    wait
+    exit 1
+}
+
+send -- "\001x"
+expect {
+    eof {}
+    timeout {puts stderr "runtime-fail: QEMU teardown timed out; raw=$log_path"; close; wait; exit 124}
+}
+set child_status [wait]
+if {[lindex $child_status 2] != 0 || [lindex $child_status 3] != 0} {
+    puts stderr "runtime-fail: QEMU/SSH exited with $child_status; raw=$log_path"
+    exit 1
+}
+
+set teardown_status [catch {exec ssh {*}$ssh_options -- $host sudo -A $hag csv platform_status} teardown_output]
+set teardown_fd [open $platform_log a]
+puts $teardown_fd "POST_TEARDOWN"
+puts $teardown_fd $teardown_output
+close $teardown_fd
+if {$teardown_status != 0 || ![regexp {guest_count:[[:space:]]*0} $teardown_output]} {
+    puts stderr "runtime-fail: HAG guest count did not return to zero; raw=$log_path platform=$platform_log"
+    exit 1
+}
+
+puts "runtime-pass: CSV2 VM ran uname and HAG counted the guest; raw=$log_path platform=$platform_log"

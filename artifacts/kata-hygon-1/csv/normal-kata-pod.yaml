@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kata-hygon-normal-smoke
+  namespace: default
+spec:
+  nodeName: hygon-1
+  runtimeClassName: kata
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  containers:
+  - name: workload
+    image: docker.io/library/busybox:1.36.1
+    imagePullPolicy: Never
+    command: ["/bin/sh", "-c"]
+    args: ["echo NORMAL_KATA_OK; uname -r; echo NORMAL_KATA_DONE"]

@@ -1,0 +1,62 @@
+#!/usr/bin/env expect
+
+# Validate a real completed Kubernetes/Kata Pod without re-running the workload.
+# Usage: run-kata-k8s-pod-smoke.exp HOST POD EXPECTED_KERNEL LOG
+
+if {$argc != 4} {
+    puts stderr "usage: $argv0 HOST POD EXPECTED_KERNEL LOG"
+    exit 2
+}
+
+lassign $argv host pod expected_kernel log_path
+foreach value [list $host $pod $expected_kernel] {
+    if {![regexp {^[A-Za-z0-9._-]+$} $value]} {
+        puts stderr "unsafe host, Pod, or kernel argument"
+        exit 2
+    }
+}
+
+set timeout 20
+log_file -noappend $log_path
+
+proc run_remote {host args} {
+    spawn -noecho ssh -o BatchMode=yes -o ConnectTimeout=8 -- $host \
+        sudo -A kubectl --kubeconfig /etc/kubernetes/admin.conf {*}$args
+    set output ""
+    expect {
+        -re {\n} {
+            append output $expect_out(buffer)
+            exp_continue
+        }
+        eof {
+            append output $expect_out(buffer)
+        }
+        timeout {
+            puts stderr "runtime-fail: kubectl timed out"
+            close
+            wait
+            exit 124
+        }
+    }
+    set child_status [wait]
+    if {[lindex $child_status 2] != 0 || [lindex $child_status 3] != 0} {
+        puts stderr "runtime-fail: kubectl exited with $child_status"
+        exit 1
+    }
+    return $output
+}
+
+set status [run_remote $host get pod $pod \
+    -o=jsonpath={.spec.runtimeClassName},{.status.phase},{.status.containerStatuses\[0\].state.terminated.exitCode}]
+if {![regexp {kata-qemu,Succeeded,0} $status]} {
+    puts stderr "runtime-fail: Kata Pod did not complete successfully; status=$status; raw=$log_path"
+    exit 1
+}
+
+set output [run_remote $host logs $pod]
+if {![string equal [string trim $output] $expected_kernel]} {
+    puts stderr "runtime-fail: Kata Pod guest kernel mismatch; raw=$log_path"
+    exit 1
+}
+
+puts "runtime-pass: Kata Pod $pod completed with exit 0 and guest kernel $expected_kernel; raw=$log_path"

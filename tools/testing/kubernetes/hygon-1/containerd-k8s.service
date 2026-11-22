@@ -6,7 +6,7 @@ After=network.target local-fs.target
 [Service]
 Type=notify
 ExecStart=/opt/kubernetes/bin/containerd --config /etc/kubernetes/containerd.toml
-Environment=PATH=/opt/kubernetes/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=/opt/kubernetes/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 Delegate=yes
 KillMode=process
 Restart=always

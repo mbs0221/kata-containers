@@ -15,9 +15,10 @@ source "${script_dir}/../../scripts/lib.sh"
 build_agent_from_source() {
 	echo "build agent from source"
 
-	/usr/bin/install_libseccomp.sh /opt /opt
+	"${repo_root_dir}/ci/install_libseccomp.sh" /opt /opt
 
 	cd src/agent
+	make -B src/version.rs
 	DESTDIR=${DESTDIR} AGENT_POLICY=${AGENT_POLICY} PULL_TYPE=${PULL_TYPE} make
 	DESTDIR=${DESTDIR} AGENT_POLICY=${AGENT_POLICY} PULL_TYPE=${PULL_TYPE} make install
 }

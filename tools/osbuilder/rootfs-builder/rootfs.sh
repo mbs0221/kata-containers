@@ -405,10 +405,13 @@ build_rootfs_distro()
 		trap error_handler ERR
 	fi
 
-	if [ -d "${ROOTFS_DIR}" ] && [ "${ROOTFS_DIR}" != "/" ]; then
-		rm -rf "${ROOTFS_DIR}"/*
+	[ -n "${ROOTFS_DIR}" ] && [ "${ROOTFS_DIR}" != "/" ] || die "Refusing unsafe rootfs path"
+	[ ! -L "${ROOTFS_DIR}" ] || die "Refusing symlink rootfs path ${ROOTFS_DIR}"
+	if [ -e "${ROOTFS_DIR}" ]; then
+		[ -d "${ROOTFS_DIR}" ] || die "Rootfs path is not a directory: ${ROOTFS_DIR}"
+		[ -z "$(ls -A "${ROOTFS_DIR}")" ] || die "Rootfs path is not empty: ${ROOTFS_DIR}"
 	else
-		mkdir -p ${ROOTFS_DIR}
+		mkdir -p -- "${ROOTFS_DIR}"
 	fi
 
 	if [ "${SELINUX}" == "yes" ]; then

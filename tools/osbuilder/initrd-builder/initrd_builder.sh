@@ -19,6 +19,8 @@ source "$lib_file"
 INITRD_IMAGE="${INITRD_IMAGE:-kata-containers-initrd.img}"
 AGENT_BIN=${AGENT_BIN:-kata-agent}
 AGENT_INIT=${AGENT_INIT:-no}
+privileged_cmd=(sudo)
+[ "$(id -u)" -eq 0 ] && privileged_cmd=()
 
 usage()
 {
@@ -74,7 +76,7 @@ OK "Agent is installed"
 
 # initramfs expects /init, create symlink only if ${ROOTFS}/init does not exist
 # Init may be provided by other packages, e.g. systemd or GPU initrd/rootfs
-[ -x "${ROOTFS}/init" ] || [ -L "${ROOTFS}/init" ] || sudo ln -sf /sbin/init "${ROOTFS}/init"
+[ -x "${ROOTFS}/init" ] || [ -L "${ROOTFS}/init" ] || "${privileged_cmd[@]}" ln -sf /sbin/init "${ROOTFS}/init"
 
 info "Creating ${IMAGE_DIR}/${IMAGE_NAME} based on rootfs at ${ROOTFS}"
-( cd "${ROOTFS}" && sudo find . | sudo cpio -H newc -o | gzip -9 ) > "${IMAGE_DIR}"/"${IMAGE_NAME}"
+( cd "${ROOTFS}" && "${privileged_cmd[@]}" find . | "${privileged_cmd[@]}" cpio -H newc -o | gzip -9 ) > "${IMAGE_DIR}"/"${IMAGE_NAME}"

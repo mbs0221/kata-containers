@@ -4,8 +4,8 @@
 
 FROM ubuntu:20.04
 ARG RUST_TOOLCHAIN
-
-COPY install_libseccomp.sh /usr/bin/install_libseccomp.sh
+ARG RUSTUP_DIST_SERVER=https://static.rust-lang.org
+ENV RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER}"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -51,6 +51,9 @@ RUN ARCH=$(uname -m); \
 	        *) echo "Unsupported architecture: ${ARCH}" && exit 1 ;; \
     	esac; \
 	rustup target add "${rust_arch}-unknown-linux-${libc}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    apt-get clean && rm -rf /var/lib/apt/lists/
 
 # aarch64 requires this name -- link for all
 RUN ln -s /usr/bin/musl-gcc "/usr/bin/$(uname -m)-linux-musl-gcc"

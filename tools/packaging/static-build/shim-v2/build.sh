@@ -27,6 +27,10 @@ case "${common_git_dir}" in
 	"${repo_root_dir}"/*) ;;
 	*) git_mount_args=(-v "${common_git_dir}:${common_git_dir}:ro") ;;
 esac
+build_network_args=()
+if [ "${KATA_BUILD_NETWORK:-}" = "host" ]; then
+	build_network_args=(--network=host --env HTTP_PROXY --env HTTPS_PROXY --env ALL_PROXY --env NO_PROXY)
+fi
 
 EXTRA_OPTS="${EXTRA_OPTS:-""}"
 
@@ -64,7 +68,7 @@ fi
 #Build rust project using cross build musl image to speed up
 [[ "${CROSS_BUILD}" == "true" && ${ARCH} != "s390x" ]] && container_image="messense/rust-musl-cross:${GCC_ARCH}-musl" && CC=${GCC_ARCH}-unknown-linux-musl-gcc
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" "${build_network_args[@]}" \
 	--env CROSS_BUILD=${CROSS_BUILD} \
 	--env ARCH=${ARCH} \
 	--env CC="${CC}" \
@@ -73,7 +77,7 @@ docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}"
 	"${container_image}" \
 	bash -c "make clean-generated-files && make PREFIX=${PREFIX} QEMUCMD=qemu-system-${arch}"
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" "${build_network_args[@]}" \
 	--env CROSS_BUILD=${CROSS_BUILD} \
         --env ARCH=${ARCH} \
         --env CC="${CC}" \
@@ -84,13 +88,13 @@ docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}"
 
 [ "${CROSS_BUILD}" == "true" ] && container_image="${container_image_bk}-cross-build"
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" "${build_network_args[@]}" \
 	-w "${repo_root_dir}/src/runtime" \
 	--user "$(id -u)":"$(id -g)" \
 	"${container_image}" \
 	bash -c "make clean-generated-files && make PREFIX=${PREFIX} QEMUCMD=qemu-system-${arch} ${EXTRA_OPTS}"
 
-docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" \
+docker run --rm -i -v "${repo_root_dir}:${repo_root_dir}" "${git_mount_args[@]}" "${build_network_args[@]}" \
 	-w "${repo_root_dir}/src/runtime" \
 	--user "$(id -u)":"$(id -g)" \
 	"${container_image}" \

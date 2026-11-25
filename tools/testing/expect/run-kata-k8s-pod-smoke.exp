@@ -1,17 +1,17 @@
 #!/usr/bin/env expect
 
 # Validate a real completed Kubernetes/Kata Pod without re-running the workload.
-# Usage: run-kata-k8s-pod-smoke.exp HOST POD EXPECTED_KERNEL LOG
+# Usage: run-kata-k8s-pod-smoke.exp HOST POD RUNTIME_CLASS EXPECTED_OUTPUT LOG
 
-if {$argc != 4} {
-    puts stderr "usage: $argv0 HOST POD EXPECTED_KERNEL LOG"
+if {$argc != 5} {
+    puts stderr "usage: $argv0 HOST POD RUNTIME_CLASS EXPECTED_OUTPUT LOG"
     exit 2
 }
 
-lassign $argv host pod expected_kernel log_path
-foreach value [list $host $pod $expected_kernel] {
+lassign $argv host pod runtime_class expected_output log_path
+foreach value [list $host $pod $runtime_class] {
     if {![regexp {^[A-Za-z0-9._-]+$} $value]} {
-        puts stderr "unsafe host, Pod, or kernel argument"
+        puts stderr "unsafe host, Pod, or RuntimeClass argument"
         exit 2
     }
 }
@@ -48,15 +48,16 @@ proc run_remote {host args} {
 
 set status [run_remote $host get pod $pod \
     -o=jsonpath={.spec.runtimeClassName},{.status.phase},{.status.containerStatuses\[0\].state.terminated.exitCode}]
-if {![regexp {kata-qemu,Succeeded,0} $status]} {
-    puts stderr "runtime-fail: Kata Pod did not complete successfully; status=$status; raw=$log_path"
+set status [string trim $status]
+if {![string equal $status "${runtime_class},Succeeded,0"]} {
+    puts stderr "runtime-fail: Kata Pod runtime class, phase, or exit code mismatch; status=$status; raw=$log_path"
     exit 1
 }
 
 set output [run_remote $host logs $pod]
-if {![string equal [string trim $output] $expected_kernel]} {
-    puts stderr "runtime-fail: Kata Pod guest kernel mismatch; raw=$log_path"
+if {![string equal [string trim $output] $expected_output]} {
+    puts stderr "runtime-fail: Kata Pod output mismatch; raw=$log_path"
     exit 1
 }
 
-puts "runtime-pass: Kata Pod $pod completed with exit 0 and guest kernel $expected_kernel; raw=$log_path"
+puts "runtime-pass: Kata Pod $pod used $runtime_class, completed with exit 0, and matched expected output; raw=$log_path"

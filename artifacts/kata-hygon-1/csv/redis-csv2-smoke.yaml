@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-csv2-smoke
+  namespace: default
+  labels:
+    app: redis-csv2-smoke
+spec:
+  nodeName: hygon-1
+  runtimeClassName: kata-hygon-csv2
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  containers:
+    - name: redis
+      image: docker.m.daocloud.io/library/redis@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/sh", "-c"]
+      args:
+        - >-
+          redis-server --save "" --appendonly no --daemonize yes --dir /tmp
+          --logfile /tmp/redis-server.log &&
+          redis-cli ping &&
+          sleep 90 &&
+          redis-cli shutdown
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: "1"
+          memory: 512Mi
